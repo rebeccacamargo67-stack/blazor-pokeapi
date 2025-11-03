@@ -1,0 +1,54 @@
+@page "/pokemon"
+@using BuscarPokemon.Models
+@inject BuscarPokemon.Services.PokemonService PokeService
+
+<h3>Buscar Pokémon</h3>
+
+<input @bind="nome" placeholder="Ex: pikachu" class="form-control" style="max-width:300px;" />
+<button @onclick="Buscar" class="btn btn-primary mt-2">Consultar</button>
+
+@if (loading)
+{
+    <p>Carregando...</p>
+}
+else if (!string.IsNullOrEmpty(erro))
+{
+    <p style="color:red;">@erro</p>
+}
+else if (pokemon is not null)
+{
+    <div class="card mt-4 p-3" style="max-width:400px;">
+        <img src="@pokemon.Sprites?.Other?.OfficialArtwork?.FrontDefault"
+             alt="@pokemon.Name"
+             style="max-width:200px; margin-bottom:10px;" />
+        <h4>@pokemon.Name?.ToUpper()</h4>
+        <p>Altura: @pokemon.Height</p>
+        <p>Peso: @pokemon.Weight</p>
+    </div>
+}
+
+@code {
+    private string nome = "";
+    private Pokemon? pokemon;
+    private bool loading = false;
+    private string? erro;
+
+    private async Task Buscar()
+    {
+        erro = null;
+        pokemon = null;
+
+        if (string.IsNullOrWhiteSpace(nome))
+        {
+            erro = "Digite o nome de um Pokémon!";
+            return;
+        }
+
+        loading = true;
+        pokemon = await PokeService.GetPokemonAsync(nome);
+        loading = false;
+
+        if (pokemon == null)
+            erro = "Pokémon não encontrado.";
+    }
+}
